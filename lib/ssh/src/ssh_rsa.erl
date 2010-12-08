@@ -23,7 +23,10 @@
 
 -module(ssh_rsa).
 
--export([verify/3, sign/2]).
+-export([verify_with_identity_key/2
+         , verify/3
+         , sign_with_identity_key/1
+         , sign/2]).
 -export([alg_name/0]).
 
 -include("ssh.hrl").
@@ -49,8 +52,16 @@
 %%     {ok,Key} = ssh_file:public_host_rsa_key(user),
 %%     verify(Key, Bin, Sig).
 
+sign_with_identity_key(Mb) when is_binary(Mb) ->
+    {ok,Private} = ssh_file:private_identity_key("ssh-rsa",[]),
+    sign(Private,Mb).
+
 sign(Private,Mb) ->
     rsassa_pkcs1_v1_5_sign(Private,Mb).
+
+verify_with_identity_key(Mb, Sb) when is_binary(Mb), is_binary(Sb) ->
+    {ok,Public} = ssh_file:public_identity_key("ssh-rsa",[]),
+    verify(Public,Mb,Sb).
 
 verify(Public,Mb,Sb) ->
     rsassa_pkcs1_v1_5_verify(Public,Mb,Sb).
